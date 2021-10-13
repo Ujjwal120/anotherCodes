@@ -27,6 +27,6 @@ signed main() {
     t = 1;
     string s; 
     cin >> s;
-    while(t--) cout << convert(s, 3) << "\n";
+    while(t--) cout << convert(s, 5) << "\n";
     return 0;
 }
