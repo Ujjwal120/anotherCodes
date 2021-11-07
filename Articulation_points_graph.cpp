@@ -10,22 +10,28 @@ template <typename T>
 using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
 
 const int maxn = 1e5 + 10;
-int id = 0, n, m;
+int id = 0, n, m, outgoingEdges = 0;
 vector<int> adj[maxn], ids(maxn), low(maxn);
-vector<pair<int, int>> bridges;
-vector<bool> vis(maxn);  // graph
+vector<bool> vis(maxn), art(maxn);  // graph
 
-void dfs(int node, int par) {
+void dfs(int root, int node, int par) {
+    if(par == root) outgoingEdges++;
+
     vis[node] = 1;
     low[node] = ids[node] = ++id;
 
     for(int to : adj[node]) {
         if(to == par) continue;
         if(!vis[to]) {
-            dfs(to, node);
+            dfs(root, to, node);
             low[node] = min(low[node], low[to]);
+            // the starting point of bridge is an articulation point
             if(ids[node] < low[to]) {
-                bridges.push_back({node, to});
+                art[node] = true;
+            }
+            // detect cycle 
+            if(ids[node] == low[to]) {
+                art[node] = true; // gets overidden if only one outgoing edges
             }
         }
         else {
@@ -35,32 +41,26 @@ void dfs(int node, int par) {
 }
 
 void solve() {
-    bridges.clear();
     cin >> n >> m;
     for(int i = 0; i < m; i++) {
         int x, y;
         cin >> x >> y;
         x--; y--;
         adj[x].push_back(y);
-        adj[y].push_back(x);
+        adj[y].push_back(x); 
     }
 
     for(int i = 0; i < n; i++) {
-        if(!vis[i]) dfs(i, -1);
+        if(!vis[i]) {
+            outgoingEdges = 0;
+            dfs(i, i, -1);
+            art[i] = (outgoingEdges > 1);
+        }
     }
 
     for(int i = 0; i < n; i++) {
-        cout << ids[i] << " ";
-    }
-    cout << "\n";
-
-    for(int i = 0; i < n; i++) {
-        cout << low[i] << " ";
-    }
-    cout << "\n";
-
-    for(pair<int, int> x : bridges) {
-        cout << x.first + 1 << " " << x.second + 1 << "\n";
+        adj[i].clear();
+        art[i] = 0;
     }
 }
 
